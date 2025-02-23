@@ -326,6 +326,28 @@ install_linux_scripts() {
     wget --quiet --show-progress -O /mnt/main_install.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/main_install.sh && chmod +x /mnt/main_install.sh && /mnt/main_install.sh
 }
 
+# 影视工具菜单
+show_media_menu() {
+    clear
+    echo -e "${BLUE}┌──────────────────────────────────────┐${NC}"
+    echo -e "${BLUE}│            影视娱乐工具              │${NC}"
+    echo -e "${BLUE}├──────────────────────────────────────┤${NC}"
+    echo -e "${BLUE}│${NC} ${GREEN}1.${NC} 小雅Alist"
+    echo -e "${BLUE}│${NC} ${GREEN}2.${NC} Emby服务器"
+    echo -e "${BLUE}│${NC} ${GREEN}3.${NC} Jellyfin服务器"
+    echo -e "${BLUE}│${NC} ${GREEN}4.${NC} TVBox配置"
+    echo -e "${BLUE}│${NC} ${GREEN}0.${NC} 返回主菜单"
+    echo -e "${BLUE}└──────────────────────────────────────┘${NC}"
+}
+
+# 安装小雅全家桶
+install_xiaoya() {
+    echo -e "${BLUE}开始安装小雅全家桶...${NC}"
+    echo -e "${GREEN}包含：Alist、Emby、Jellyfin、TVBox${NC}"
+    
+    bash -c "$(curl --insecure -fsSL https://ddsrem.com/xiaoya_install.sh)"
+}
+
 # 主菜单显示
 show_main_menu() {
     clear
@@ -336,6 +358,7 @@ show_main_menu() {
     echo -e "${BLUE}│${NC} ${GREEN}2.${NC} 开发环境配置"
     echo -e "${BLUE}│${NC} ${GREEN}3.${NC} 网络代理工具"
     echo -e "${BLUE}│${NC} ${GREEN}4.${NC} 系统工具箱"
+    echo -e "${BLUE}│${NC} ${GREEN}5.${NC} 影视娱乐工具"
     echo -e "${BLUE}│${NC} ${GREEN}0.${NC} 退出脚本"
     echo -e "${BLUE}└──────────────────────────────────────┘${NC}"
 }
@@ -395,7 +418,7 @@ show_tools_menu() {
 # 修改主程序循环，添加新选项处理
 while true; do
     show_main_menu
-    read -p "请选择功能 (0-4): " choice
+    read -p "请选择功能 (0-5): " choice
     
     case $choice in
         1)
@@ -473,6 +496,29 @@ while true; do
                 3)
                     # 实现系统优化工具集
                     echo -e "${GREEN}系统优化工具集功能正在开发中...${NC}"
+                    ;;
+                0)
+                    ;;
+                *)
+                    echo -e "${RED}无效的选择，请重试${NC}"
+                    ;;
+            esac
+            ;;
+        5)
+            show_media_menu
+            read -p "请选择功能 (0-4): " sub_choice
+            case $sub_choice in
+                1)
+                    install_xiaoya
+                    ;;
+                2)
+                    echo -e "${GREEN}Emby服务器安装功能正在开发中...${NC}"
+                    ;;
+                3)
+                    echo -e "${GREEN}Jellyfin服务器安装功能正在开发中...${NC}"
+                    ;;
+                4)
+                    echo -e "${GREEN}TVBox配置功能正在开发中...${NC}"
                     ;;
                 0)
                     ;;
