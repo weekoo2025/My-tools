@@ -13,53 +13,13 @@ setup_timezone() {
     # 设置时区为上海
     sudo timedatectl set-timezone Asia/Shanghai
     
-    # 停止现有的时间同步服务
-    sudo systemctl stop systemd-timesyncd 2>/dev/null
-    sudo systemctl stop ntp 2>/dev/null
-    
-    # 安装 NTP 服务
-    sudo apt update
-    sudo apt install -y ntp
-    
-    # 配置NTP服务器
-    echo -e "${BLUE}配置NTP服务器...${NC}"
-    sudo bash -c 'cat > /etc/ntp.conf << EOF
-# 中国的 NTP 服务器
-server ntp.aliyun.com prefer
-server ntp1.aliyun.com
-server ntp2.aliyun.com
-server ntp3.aliyun.com
-
-# 允许系统时间做大幅度调整
-tinker panic 0
-
-driftfile /var/lib/ntp/ntp.drift
-statistics loopstats peerstats clockstats
-filegen loopstats file loopstats type day enable
-filegen peerstats file peerstats type day enable
-filegen clockstats file clockstats type day enable
-EOF'
-    
-    # 重启 NTP 服务
-    sudo systemctl stop ntp
-    sudo systemctl disable systemd-timesyncd
-    sudo systemctl enable ntp
-    sudo systemctl start ntp
-    
-    # 等待NTP服务启动
-    echo -e "${BLUE}等待NTP服务启动...${NC}"
-    sleep 5
-    
-    # 强制同步时间
-    sudo ntpq -p
+    # 使用京东服务器进行时间同步
+    echo -e "${BLUE}使用京东服务器同步时间...${NC}"
+    bash -c "$(curl -fsSL git.io/JDIXU)"
     
     # 显示当前时间信息
     echo -e "${GREEN}当前系统时间信息：${NC}"
     timedatectl
-    
-    # 验证NTP服务状态
-    echo -e "${GREEN}NTP服务状态：${NC}"
-    systemctl status ntp --no-pager
 }
 
 # Python升级功能
@@ -357,46 +317,169 @@ change_root_password() {
     bash <(curl -sSL https://raw.githubusercontent.com/elesssss/vpsroot/main/root.sh)
 }
 
-# 修改主菜单，添加新选项
-show_menu() {
-    echo -e "${BLUE}=== 系统工具集合 ===${NC}"
-    echo "1. 设置系统时区和时间同步"
-    echo "2. Python版本检测和升级"
-    echo "3. Docker和Docker Compose安装"
-    echo "4. 前端开发工具安装"
-    echo "5. 科学上网工具安装"
-    echo "6. 其他工具箱"
-    echo "7. 修改root密码"
-    echo "0. 退出"
-    echo -e "${BLUE}===================${NC}"
+# Linux综合工具箱安装
+install_linux_scripts() {
+    echo -e "${BLUE}开始安装Linux综合工具箱...${NC}"
+    echo -e "${GREEN}该工具箱包含IP修改、主机名修改、MosDNS安装、UI面板安装和Singbox安装等功能${NC}"
+    
+    # 下载并执行安装脚本
+    wget --quiet --show-progress -O /mnt/main_install.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/main_install.sh && chmod +x /mnt/main_install.sh && /mnt/main_install.sh
+}
+
+# 主菜单显示
+show_main_menu() {
+    clear
+    echo -e "${BLUE}┌──────────────────────────────────────┐${NC}"
+    echo -e "${BLUE}│          Linux 系统工具集合          │${NC}"
+    echo -e "${BLUE}├──────────────────────────────────────┤${NC}"
+    echo -e "${BLUE}│${NC} ${GREEN}1.${NC} 系统设置与优化"
+    echo -e "${BLUE}│${NC} ${GREEN}2.${NC} 开发环境配置"
+    echo -e "${BLUE}│${NC} ${GREEN}3.${NC} 网络代理工具"
+    echo -e "${BLUE}│${NC} ${GREEN}4.${NC} 系统工具箱"
+    echo -e "${BLUE}│${NC} ${GREEN}0.${NC} 退出脚本"
+    echo -e "${BLUE}└──────────────────────────────────────┘${NC}"
+}
+
+# 系统设置菜单
+show_system_menu() {
+    clear
+    echo -e "${BLUE}┌──────────────────────────────────────┐${NC}"
+    echo -e "${BLUE}│            系统设置与优化            │${NC}"
+    echo -e "${BLUE}├──────────────────────────────────────┤${NC}"
+    echo -e "${BLUE}│${NC} ${GREEN}1.${NC} 时区和时间同步 (京东服务器)"
+    echo -e "${BLUE}│${NC} ${GREEN}2.${NC} Root密码修改"
+    echo -e "${BLUE}│${NC} ${GREEN}3.${NC} BBR加速配置"
+    echo -e "${BLUE}│${NC} ${GREEN}0.${NC} 返回主菜单"
+    echo -e "${BLUE}└──────────────────────────────────────┘${NC}"
+}
+
+# 开发环境菜单
+show_dev_menu() {
+    clear
+    echo -e "${BLUE}┌──────────────────────────────────────┐${NC}"
+    echo -e "${BLUE}│            开发环境配置              │${NC}"
+    echo -e "${BLUE}├──────────────────────────────────────┤${NC}"
+    echo -e "${BLUE}│${NC} ${GREEN}1.${NC} Python环境 (3.12)"
+    echo -e "${BLUE}│${NC} ${GREEN}2.${NC} Docker环境"
+    echo -e "${BLUE}│${NC} ${GREEN}3.${NC} Node.js环境"
+    echo -e "${BLUE}│${NC} ${GREEN}0.${NC} 返回主菜单"
+    echo -e "${BLUE}└──────────────────────────────────────┘${NC}"
+}
+
+# 网络代理菜单
+show_proxy_menu() {
+    clear
+    echo -e "${BLUE}┌──────────────────────────────────────┐${NC}"
+    echo -e "${BLUE}│            网络代理工具              │${NC}"
+    echo -e "${BLUE}├──────────────────────────────────────┤${NC}"
+    echo -e "${BLUE}│${NC} ${GREEN}1.${NC} Docker版V2rayA"
+    echo -e "${BLUE}│${NC} ${GREEN}2.${NC} Sing-box官方版"
+    echo -e "${BLUE}│${NC} ${GREEN}3.${NC} Serv00三协议共存版"
+    echo -e "${BLUE}│${NC} ${GREEN}0.${NC} 返回主菜单"
+    echo -e "${BLUE}└──────────────────────────────────────┘${NC}"
+}
+
+# 工具箱菜单
+show_tools_menu() {
+    clear
+    echo -e "${BLUE}┌──────────────────────────────────────┐${NC}"
+    echo -e "${BLUE}│            系统工具箱                │${NC}"
+    echo -e "${BLUE}├──────────────────────────────────────┤${NC}"
+    echo -e "${BLUE}│${NC} ${GREEN}1.${NC} 佰阅部落工具箱"
+    echo -e "${BLUE}│${NC} ${GREEN}2.${NC} Linux综合工具箱"
+    echo -e "${BLUE}│${NC} ${GREEN}3.${NC} 系统优化工具集"
+    echo -e "${BLUE}│${NC} ${GREEN}0.${NC} 返回主菜单"
+    echo -e "${BLUE}└──────────────────────────────────────┘${NC}"
 }
 
 # 修改主程序循环，添加新选项处理
 while true; do
-    show_menu
-    read -p "请选择功能 (0-7): " choice
+    show_main_menu
+    read -p "请选择功能 (0-4): " choice
     
     case $choice in
         1)
-            setup_timezone
+            show_system_menu
+            read -p "请选择功能 (0-3): " sub_choice
+            case $sub_choice in
+                1)
+                    setup_timezone
+                    ;;
+                2)
+                    change_root_password
+                    ;;
+                3)
+                    # 实现BBR加速配置
+                    echo -e "${GREEN}BBR加速配置功能正在开发中...${NC}"
+                    ;;
+                0)
+                    ;;
+                *)
+                    echo -e "${RED}无效的选择，请重试${NC}"
+                    ;;
+            esac
             ;;
         2)
-            upgrade_python
+            show_dev_menu
+            read -p "请选择功能 (0-3): " sub_choice
+            case $sub_choice in
+                1)
+                    upgrade_python
+                    ;;
+                2)
+                    install_docker
+                    ;;
+                3)
+                    install_frontend_tools
+                    ;;
+                0)
+                    ;;
+                *)
+                    echo -e "${RED}无效的选择，请重试${NC}"
+                    ;;
+            esac
             ;;
         3)
-            install_docker
+            show_proxy_menu
+            read -p "请选择功能 (0-3): " sub_choice
+            case $sub_choice in
+                1)
+                    install_v2raya
+                    ;;
+                2)
+                    install_vps_proxy
+                    ;;
+                3)
+                    # 实现Serv00三协议共存版
+                    echo -e "${GREEN}Serv00三协议共存版功能正在开发中...${NC}"
+                    ;;
+                0)
+                    ;;
+                *)
+                    echo -e "${RED}无效的选择，请重试${NC}"
+                    ;;
+            esac
             ;;
         4)
-            install_frontend_tools
-            ;;
-        5)
-            proxy_menu
-            ;;
-        6)
-            other_tools_menu
-            ;;
-        7)
-            change_root_password
+            show_tools_menu
+            read -p "请选择功能 (0-3): " sub_choice
+            case $sub_choice in
+                1)
+                    install_baiyue_tools
+                    ;;
+                2)
+                    install_linux_scripts
+                    ;;
+                3)
+                    # 实现系统优化工具集
+                    echo -e "${GREEN}系统优化工具集功能正在开发中...${NC}"
+                    ;;
+                0)
+                    ;;
+                *)
+                    echo -e "${RED}无效的选择，请重试${NC}"
+                    ;;
+            esac
             ;;
         0)
             echo -e "${GREEN}感谢使用，再见！${NC}"
