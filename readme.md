@@ -5,15 +5,21 @@
 ## 🚀 快速开始
 
 ### 方法一：完整链接（推荐）
+```bash
 bash <(curl -fsSL https://raw.githubusercontent.com/weekoo2025/My-tools/main/system_tools.sh)
+```
 
 ### 方法二：短链接
+```bash
 bash <(curl -fsSL is.gd/wktools)
+```
 
 ### 方法三：本地安装
+```bash
 git clone https://github.com/weekoo2025/My-tools.git
 chmod +x system_tools.sh
 ./system_tools.sh
+```
 
 ## 🎯 主要功能
 
