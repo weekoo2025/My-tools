@@ -36,27 +36,56 @@ upgrade_python() {
     current_version=$(python3 --version 2>&1)
     echo "当前Python版本: $current_version"
 
-    # 检查是否已安装Python 3.12
-    if command -v python3.12 &> /dev/null; then
-        echo -e "${GREEN}Python 3.12 已经安装${NC}"
+    # 选择要安装的Python版本
+    echo -e "${BLUE}请选择要安装的Python版本:${NC}"
+    echo "1. Python 3.11"
+    echo "2. Python 3.12"
+    read -p "请选择 (1-2): " python_version_choice
+
+    case $python_version_choice in
+        1)
+            python_version="3.11"
+            ;;
+        2)
+            python_version="3.12"
+            ;;
+        *)
+            echo -e "${RED}无效的选择，默认安装Python 3.12${NC}"
+            python_version="3.12"
+            ;;
+    esac
+
+    # 检查是否已安装选择的Python版本
+    if command -v python$python_version &> /dev/null; then
+        echo -e "${GREEN}Python $python_version 已经安装${NC}"
     else
-        echo -e "${GREEN}开始安装Python 3.12...${NC}"
+        echo -e "${GREEN}开始安装Python $python_version...${NC}"
         
         sudo apt update
         sudo apt install -y software-properties-common
         sudo add-apt-repository -y ppa:deadsnakes/ppa
         sudo apt update
         
-        sudo apt install -y python3.12 python3.12-venv
+        # 安装Python和venv
+        sudo apt install -y python$python_version python${python_version}-venv python${python_version}-dev
         
-        curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python3.12
+        # 安装pip
+        curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python$python_version
         
-        sudo python3.12 -m pip install --upgrade setuptools
+        # 安装setuptools
+        sudo python$python_version -m pip install --upgrade setuptools
     fi
 
-    # 设置Python 3.12为默认版本
-    sudo update-alternatives --install /usr/bin/python python /usr/bin/python3.12 100
-    sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.12 100
+    # 检查venv是否安装
+    if ! dpkg -l | grep -q "python${python_version}-venv"; then
+        echo -e "${BLUE}安装 Python venv 模块...${NC}"
+        sudo apt install -y python${python_version}-venv
+    fi
+
+    # 设置选择的Python版本为默认版本
+    echo -e "${GREEN}设置Python $python_version为默认版本...${NC}"
+    sudo update-alternatives --install /usr/bin/python python /usr/bin/python$python_version 100
+    sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python$python_version 100
 
     # 重新安装 apt_pkg（如果需要）
     if ! python3 -c "import apt_pkg" 2>/dev/null; then
@@ -68,8 +97,15 @@ upgrade_python() {
     new_version=$(python3 --version 2>&1)
     echo -e "${GREEN}Python版本已更新为: $new_version${NC}"
     
+    # 验证pip和venv
     pip_version=$(python3 -m pip --version 2>&1)
     echo -e "${GREEN}Pip版本: $pip_version${NC}"
+    
+    if python3 -m venv --help &>/dev/null; then
+        echo -e "${GREEN}Python venv 已正确安装${NC}"
+    else
+        echo -e "${RED}警告: Python venv 可能未正确安装${NC}"
+    fi
 }
 
 # Docker安装功能
@@ -144,11 +180,43 @@ install_frontend_tools() {
         sudo npm install -g yarn
     fi
 
+    # 安装pnpm
+    if command -v pnpm &> /dev/null; then
+        echo -e "${GREEN}pnpm已安装，版本信息：${NC}"
+        pnpm --version
+    else
+        echo -e "${GREEN}开始安装pnpm...${NC}"
+        sudo npm install -g pnpm
+    fi
+
+    # 安装bun
+    if command -v bun &> /dev/null; then
+        echo -e "${GREEN}bun已安装，版本信息：${NC}"
+        bun --version
+    else
+        echo -e "${GREEN}开始安装bun...${NC}"
+        sudo npm install -g bun
+    fi
+
+    # 安装pm2
+    if command -v pm2 &> /dev/null; then
+        echo -e "${GREEN}pm2已安装，版本信息：${NC}"
+        pm2 --version
+    else
+        echo -e "${GREEN}开始安装pm2...${NC}"
+        sudo npm install -g pm2
+    fi
+
     # 显示版本信息
     echo -e "${GREEN}安装完成，版本信息：${NC}"
     echo "Node.js: $(node --version)"
     echo "NPM: $(npm --version)"
     echo "Yarn: $(yarn --version)"
+    echo "pnpm: $(pnpm --version)"
+    echo "bun: $(bun --version)"
+    echo "pm2: $(pm2 --version)"
+
+    echo -e "${GREEN}前端开发工具安装完成！${NC}"
 }
 
 # 安装Docker版V2rayA
@@ -203,12 +271,12 @@ install_vps_proxy() {
         case $choice in
             1)
                 echo -e "${GREEN}开始安装Sing-box官方版本...${NC}"
-                bash <(curl -Ls https://raw.githubusercontent.com/yonggekkk/sing-box-yg/main/sb.sh)
+                bash <(curl -Ls https://hub.gitmirror.com/raw.githubusercontent.com/yonggekkk/sing-box-yg/main/sb.sh)
                 ;;
             2)
                 echo -e "${GREEN}开始安装Serv00三协议共存版本...${NC}"
                 echo -e "${BLUE}支持：vless-reality、vmess-ws(argo)、hysteria2${NC}"
-                bash <(curl -Ls https://raw.githubusercontent.com/yonggekkk/sing-box-yg/main/serv00.sh)
+                bash <(curl -Ls https://hub.gitmirror.com/raw.githubusercontent.com/yonggekkk/sing-box-yg/main/serv00.sh)
                 ;;
             0)
                 return
@@ -269,7 +337,7 @@ install_baiyue_tools() {
     
     case $source_choice in
         1)
-            bash <(curl -L -s https://raw.githubusercontent.com/Baiyuetribe/baiyue_onekey/master/go.sh)
+            bash <(curl -L -s https://hub.gitmirror.com/raw.githubusercontent.com/Baiyuetribe/baiyue_onekey/master/go.sh)
             ;;
         2)
             bash <(curl -L -s git.io/baiyue_onekey)
@@ -314,7 +382,7 @@ change_root_password() {
     echo -e "${GREEN}使用一键脚本修改root密码${NC}"
     
     # 执行一键修改root密码脚本
-    bash <(curl -sSL https://raw.githubusercontent.com/elesssss/vpsroot/main/root.sh)
+    bash <(curl -sSL https://hub.gitmirror.com/raw.githubusercontent.com/elesssss/vpsroot/main/root.sh)
 }
 
 # Linux综合工具箱安装
@@ -323,7 +391,7 @@ install_linux_scripts() {
     echo -e "${GREEN}该工具箱包含IP修改、主机名修改、MosDNS安装、UI面板安装和Singbox安装等功能${NC}"
     
     # 下载并执行安装脚本
-    wget --quiet --show-progress -O /mnt/main_install.sh https://raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/main_install.sh && chmod +x /mnt/main_install.sh && /mnt/main_install.sh
+    wget --quiet --show-progress -O /mnt/main_install.sh https://hub.gitmirror.com/raw.githubusercontent.com/feiye2021/LinuxScripts/main/AIO/Scripts/main_install.sh && chmod +x /mnt/main_install.sh && /mnt/main_install.sh
 }
 
 # 影视工具菜单
