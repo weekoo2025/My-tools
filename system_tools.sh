@@ -427,6 +427,44 @@ show_tools_menu() {
     echo -e "${BLUE}└──────────────────────────────────────┘${NC}"
 }
 
+# 开发环境菜单处理函数
+handle_dev_menu() {
+    while true; do
+        show_dev_menu
+        read -p "请选择功能 (0-5): " sub_choice
+        case $sub_choice in
+            1)
+                # Python 3.11
+                bash python_upgrade.sh 1
+                ;;
+            2)
+                # Python 3.12
+                bash python_upgrade.sh 2
+                ;;
+            3)
+                # Python 3.11 和 3.12
+                bash python_upgrade.sh 3
+                ;;
+            4)
+                install_docker
+                ;;
+            5)
+                install_frontend_tools
+                ;;
+            0)
+                return
+                ;;
+            *)
+                echo -e "${RED}无效的选择，请重试${NC}"
+                ;;
+        esac
+        
+        echo
+        read -p "按回车键继续..."
+        clear
+    done
+}
+
 # 修改主程序循环，添加新选项处理
 while true; do
     show_main_menu
@@ -455,24 +493,7 @@ while true; do
             esac
             ;;
         2)
-            show_dev_menu
-            read -p "请选择功能 (0-3): " sub_choice
-            case $sub_choice in
-                1)
-                    setup_python_env
-                    ;;
-                2)
-                    install_docker
-                    ;;
-                3)
-                    install_frontend_tools
-                    ;;
-                0)
-                    ;;
-                *)
-                    echo -e "${RED}无效的选择，请重试${NC}"
-                    ;;
-            esac
+            handle_dev_menu    # 使用新的处理函数
             ;;
         3)
             show_proxy_menu
