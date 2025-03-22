@@ -22,90 +22,32 @@ setup_timezone() {
     timedatectl
 }
 
-# Python升级功能
-upgrade_python() {
-    echo -e "${BLUE}开始Python版本检测和升级...${NC}"
+# Python环境配置功能
+setup_python_env() {
+    echo -e "${BLUE}开始配置Python环境...${NC}"
     
-    # 修复 apt_pkg 问题
-    if ! python3 -c "import apt_pkg" 2>/dev/null; then
-        echo -e "${BLUE}修复 apt_pkg 模块...${NC}"
-        sudo apt-get install --reinstall python3-apt
+    # 安装python-is-python3包来创建python链接
+    sudo apt update
+    sudo apt install -y python-is-python3
+    
+    # 或者手动创建软链接
+    if [ ! -f /usr/bin/python ]; then
+        sudo ln -s /usr/bin/python3 /usr/bin/python
     fi
     
-    # 检查当前Python版本
-    current_version=$(python3 --version 2>&1)
-    echo "当前Python版本: $current_version"
-
-    # 选择要安装的Python版本
-    echo -e "${BLUE}请选择要安装的Python版本:${NC}"
-    echo "1. Python 3.11"
-    echo "2. Python 3.12"
-    read -p "请选择 (1-2): " python_version_choice
-
-    case $python_version_choice in
-        1)
-            python_version="3.11"
-            ;;
-        2)
-            python_version="3.12"
-            ;;
-        *)
-            echo -e "${RED}无效的选择，默认安装Python 3.12${NC}"
-            python_version="3.12"
-            ;;
-    esac
-
-    # 检查是否已安装选择的Python版本
-    if command -v python$python_version &> /dev/null; then
-        echo -e "${GREEN}Python $python_version 已经安装${NC}"
-    else
-        echo -e "${GREEN}开始安装Python $python_version...${NC}"
-        
-        sudo apt update
-        sudo apt install -y software-properties-common
-        sudo add-apt-repository -y ppa:deadsnakes/ppa
-        sudo apt update
-        
-        # 安装Python和venv
-        sudo apt install -y python$python_version python${python_version}-venv python${python_version}-dev
-        
-        # 安装pip
-        curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python$python_version
-        
-        # 安装setuptools
-        sudo python$python_version -m pip install --upgrade setuptools
-    fi
-
-    # 检查venv是否安装
-    if ! dpkg -l | grep -q "python${python_version}-venv"; then
-        echo -e "${BLUE}安装 Python venv 模块...${NC}"
-        sudo apt install -y python${python_version}-venv
-    fi
-
-    # 设置选择的Python版本为默认版本
-    echo -e "${GREEN}设置Python $python_version为默认版本...${NC}"
-    sudo update-alternatives --install /usr/bin/python python /usr/bin/python$python_version 100
-    sudo update-alternatives --install /usr/bin/python3 python3 /usr/bin/python$python_version 100
-
-    # 重新安装 apt_pkg（如果需要）
-    if ! python3 -c "import apt_pkg" 2>/dev/null; then
-        echo -e "${BLUE}重新配置 python3-apt...${NC}"
-        sudo apt-get install --reinstall python3-apt
-    fi
-
-    # 验证安装
-    new_version=$(python3 --version 2>&1)
-    echo -e "${GREEN}Python版本已更新为: $new_version${NC}"
+    # 验证配置
+    echo -e "${GREEN}Python配置信息：${NC}"
+    python --version
+    python3 --version
     
-    # 验证pip和venv
-    pip_version=$(python3 -m pip --version 2>&1)
-    echo -e "${GREEN}Pip版本: $pip_version${NC}"
-    
-    if python3 -m venv --help &>/dev/null; then
-        echo -e "${GREEN}Python venv 已正确安装${NC}"
-    else
-        echo -e "${RED}警告: Python venv 可能未正确安装${NC}"
+    # 检查并安装pip
+    if ! command -v pip &> /dev/null; then
+        echo -e "${BLUE}安装pip...${NC}"
+        curl -sS https://bootstrap.pypa.io/get-pip.py | sudo python3
     fi
+    
+    # 验证pip安装
+    pip --version
 }
 
 # Docker安装功能
@@ -450,9 +392,11 @@ show_dev_menu() {
     echo -e "${BLUE}┌──────────────────────────────────────┐${NC}"
     echo -e "${BLUE}│            开发环境配置              │${NC}"
     echo -e "${BLUE}├──────────────────────────────────────┤${NC}"
-    echo -e "${BLUE}│${NC} ${GREEN}1.${NC} Python环境 (3.12)"
-    echo -e "${BLUE}│${NC} ${GREEN}2.${NC} Docker环境"
-    echo -e "${BLUE}│${NC} ${GREEN}3.${NC} Node.js环境"
+    echo -e "${BLUE}│${NC} ${GREEN}1.${NC} Python 3.11"
+    echo -e "${BLUE}│${NC} ${GREEN}2.${NC} Python 3.12"
+    echo -e "${BLUE}│${NC} ${GREEN}3.${NC} Python 3.11 和 3.12"
+    echo -e "${BLUE}│${NC} ${GREEN}4.${NC} Docker环境"
+    echo -e "${BLUE}│${NC} ${GREEN}5.${NC} Node.js环境"
     echo -e "${BLUE}│${NC} ${GREEN}0.${NC} 返回主菜单"
     echo -e "${BLUE}└──────────────────────────────────────┘${NC}"
 }
@@ -515,7 +459,7 @@ while true; do
             read -p "请选择功能 (0-3): " sub_choice
             case $sub_choice in
                 1)
-                    upgrade_python
+                    setup_python_env
                     ;;
                 2)
                     install_docker
